@@ -1,6 +1,6 @@
 {
   "name": "figtree2ai",
-  "version": "1.0.0",
+  "version": "alpha-1.0.0",
   "description": "",
   "main": "init_tree.ts",
   "scripts": {
