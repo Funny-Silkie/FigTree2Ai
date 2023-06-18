@@ -1,4 +1,4 @@
-function main(): void {
+function init_tree(): void {
     const document: Document = app.activeDocument;
     const layers: Layers = document.layers;
     const firstLayer: Layer = layers[0];
@@ -112,4 +112,4 @@ function clone<TObj extends PageItem>(obj: TObj, dest: Layer | GroupItem): TObj 
     return obj.duplicate(dest, location) as TObj;
 }
 
-main();
+init_tree();
