@@ -206,13 +206,20 @@ function process(entry: UIEntry): void {
         destLayer = layers[entry.destLayerIndex];
     }
     var pathIndex = 0;
+    var movedCount = 0;
     while (pathIndex < srcLayer.pathItems.length) {
         var currentPath: PathItem = srcLayer.pathItems[pathIndex];
 
         // 色の条件・
         var color: Color = entry.searchType == 0 ? currentPath.fillColor : currentPath.strokeColor;
         var willMove: boolean;
-        if (color instanceof NoColor) continue;
+        if (entry.searchType == 0) {
+            entry.pathType = 0;
+        }
+        if (color instanceof NoColor) {
+            pathIndex++;
+            continue;
+        }
         if (color instanceof RGBColor) {
             switch (entry.pathType) {
                 // 全てのパスオブジェクト
@@ -241,10 +248,14 @@ function process(entry: UIEntry): void {
         // 色や処理対象の条件に適合するものを対象レイヤーへ移動
         if (currentPath.layer == srcLayer && willMove) {
             currentPath.move(destLayer, location);
+            movedCount++;
         }
         else {
             pathIndex++;
         }
+    }
+    if (movedCount == 0) {
+        alert("対象オブジェクトがありません");
     }
 }
 
@@ -288,6 +299,7 @@ function checkState(entry: UIEntry): true | string {
     }
     else {
         if (entry.destLayerIndex < 0) return "選択した移動先レイヤーが無効です";
+        if (entry.srcLayerIndex == entry.srcLayerIndex) return "移動先レイヤーが同じです";
     }
     return true;
 }
