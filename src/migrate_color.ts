@@ -1,11 +1,46 @@
+/**
+ * UIデータを表します。
+ */
 type UIEntry = {
     srcLayerIndex: number,
     isNewLayer: boolean,
     destLayerIndex: number,
     destLayerName: string,
-    searchType: number,
-    pathType: number,
+    searchType: SearchType,
+    pathType: PathType,
     color: RGBColor,
+};
+
+/**
+ * 検索対象を表します。
+ */
+enum SearchType {
+    /**
+     * 塗り潰し色で検索
+     */
+    Fill = 0,
+    /**
+     * 外枠色で検索
+     */
+    Stroke = 1,
+}
+
+/**
+ * 処理対象を表します。
+ */
+enum PathType {
+    /**
+     * 全てを処理
+     */
+    All = 0,
+    /**
+     * 縦棒のみ処理
+     */
+    VerticalOnly = 1,
+    /**
+     * 横棒のみ処理
+     */
+    HorizontalOnly = 2,
 };
 
 function migrate_color(): void {
@@ -34,10 +69,10 @@ function migrate_color(): void {
     destLayerC.enabled = false;
     // ラジオボタン：検索方法
     window.add("statictext", createPositionBounds(TEXTAREA_X_OFFSET, 130, TEXTAREA_WIDTH, 155), "検索方法");
-    const searchTypeC: RadioButton[] = addRadioButtons(window, ["Fill", "Stroke"], TEXTAREA_WIDTH, 135, 250, 1);
+    const searchTypeC: RadioButton[] = addRadioButtons(window, getSearchTypeUITexts(), TEXTAREA_WIDTH, 135, 250, SearchType.Stroke);
     // ラジオボタン：検索対象
     window.add("statictext", createPositionBounds(TEXTAREA_X_OFFSET, 180, TEXTAREA_WIDTH, 215), "処理対象");
-    const pathTypeC: RadioButton[] = addRadioButtons(window, ["全パスオブジェクト", "縦棒のみ", "横棒のみ"], TEXTAREA_WIDTH, 190, 250, 2);
+    const pathTypeC: RadioButton[] = addRadioButtons(window, getPathTypeUITexts(), TEXTAREA_WIDTH, 190, 250, PathType.HorizontalOnly);
     // 検索色
     window.add("statictext", createPositionBounds(TEXTAREA_X_OFFSET, 255, TEXTAREA_WIDTH, 285), "検索色");
     // const colorSample: StaticText = window.add("statictext", createPositionBounds(TEXTAREA_X_OFFSET + 60, 255, TEXTAREA_WIDTH, 285), "■");
@@ -111,6 +146,55 @@ function migrate_color(): void {
         window.close();
     };
     window.show();
+}
+
+/**
+ * SearchTypeを表すUI表示文字列一覧を取得します。
+ * @returns SearchTypeを表すUI表示文字列一覧
+ */
+function getSearchTypeUITexts(): string[] {
+    const values: SearchType[] = [SearchType.Fill, SearchType.Stroke];
+    const result = new Array<string>(values.length);
+    for (var i = 0; i < result.length; i++) {
+        switch (values[i]) {
+            case SearchType.Fill:
+                result[i] = "Fill";
+                break;
+            case SearchType.Stroke:
+                result[i] = "Stroke";
+                break;
+            default:
+                result[i] = "<INVALID>";
+                break;
+        }
+    }
+    return result;
+}
+
+/**
+ * PathTypeを表すUI表示文字列一覧を取得します。
+ * @returns PathTypeを表すUI表示文字列一覧
+ */
+function getPathTypeUITexts(): string[] {
+    const values: PathType[] = [PathType.All, PathType.VerticalOnly, PathType.HorizontalOnly];
+    const result = new Array<string>(values.length);
+    for (var i = 0; i < result.length; i++) {
+        switch (values[i]) {
+            case PathType.All:
+                result[i] = "全パスオブジェクト";
+                break;
+            case PathType.HorizontalOnly:
+                result[i] = "横棒のみ";
+                break;
+            case PathType.VerticalOnly:
+                result[i] = "縦棒のみ";
+                break;
+            default:
+                result[i] = "<INVALID>";
+                break;
+        }
+    }
+    return result;
 }
 
 /**
@@ -197,7 +281,7 @@ function process(entry: UIEntry): boolean {
     const location = ElementPlacement.PLACEATEND;
     const layers: Layers = app.activeDocument.layers;
     const srcLayer: Layer = layers[entry.srcLayerIndex];
-    var destLayer: Layer
+    var destLayer: Layer;
     if (entry.isNewLayer) {
         // 移動先レイヤーの生成
         destLayer = layers.add();
@@ -213,25 +297,35 @@ function process(entry: UIEntry): boolean {
         var currentPath: PathItem = srcLayer.pathItems[pathIndex];
 
         // 色の条件
-        var color: Color = entry.searchType == 0 ? currentPath.fillColor : currentPath.strokeColor;
-        var willMove: boolean;
-        if (entry.searchType == 0) {
-            entry.pathType = 0;
+        var color: Color;
+        switch (entry.searchType) {
+            case SearchType.Fill:
+                color = currentPath.fillColor;
+                break;
+            case SearchType.Stroke:
+                color = currentPath.strokeColor;
+                break;
+            default:
+                alert("選択した検索対象が無効です");
+                destLayer.remove();
+                return false;
         }
+        var willMove: boolean;
+        if (entry.searchType == SearchType.Fill) {
+            entry.pathType = PathType.All;
+        }
+
+        // 処理対象
         switch (entry.pathType) {
-            // 全てのパスオブジェクト
-            case 0:
+            case PathType.All:
                 willMove = isSameColor(entry.color, color);
                 break;
-            // 縦棒のみ
-            case 1:
+            case PathType.VerticalOnly:
                 willMove = isVerticalLine(currentPath) && isSameColor(entry.color, color);
                 break;
-            // 横棒のみ
-            case 2:
+            case PathType.HorizontalOnly:
                 willMove = isHorizontalLine(currentPath) && isSameColor(entry.color, color);
                 break;
-            // 無効な値
             default:
                 alert("選択した処理対象が無効です");
                 destLayer.remove();
