@@ -13,9 +13,9 @@
 1. クリッピングマスクの解除を2回行う
 1. イラレの「ファイル>スクリプト>その他のスクリプト」でファイル選択画面に遷移，実行したいスクリプトを実行
 
-※スクリプト（JSファイル）のダウンロードは[Release欄](https://github.com/MEMlabo/AU-aLRT/releases)から
+※スクリプト（JSファイル）のダウンロードは[Release欄](https://github.com/Funny-Silkie/FigTree2Ai/releases)から
 
-バグ報告や要望等は[Issue](https://github.com/MEMlabo/AU-aLRT/issues)へ
+バグ報告や要望等は[Issue](https://github.com/Funny-Silkie/FigTree2Ai/issues)へ
 
 ## init_tree.js
 
