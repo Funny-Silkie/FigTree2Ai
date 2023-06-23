@@ -295,7 +295,7 @@ function checkState(entry: UIEntry): true | string {
     }
     else {
         if (entry.destLayerIndex < 0) return "選択した移動先レイヤーが無効です";
-        if (entry.srcLayerIndex == entry.srcLayerIndex) return "移動先レイヤーが同じです";
+        if (entry.srcLayerIndex == entry.destLayerIndex) return "移動先レイヤーが同じです";
     }
     return true;
 }
