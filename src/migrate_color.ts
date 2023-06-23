@@ -5,9 +5,7 @@ type UIEntry = {
     destLayerName: string,
     searchType: number,
     pathType: number,
-    colorR: number,
-    colorG: number,
-    colorB: number,
+    color: RGBColor,
 };
 
 function migrate_color(): void {
@@ -92,17 +90,20 @@ function migrate_color(): void {
             destLayerName: newLayerNameC.text,
             searchType: getRadioButtonsIndex(searchTypeC),
             pathType: getRadioButtonsIndex(pathTypeC),
-            colorR: colorRC.value,
-            colorG: colorGC.value,
-            colorB: colorBC.value
+            color: {
+                red: Math.floor(colorRC.value),
+                green: Math.floor(colorGC.value),
+                blue: Math.floor(colorBC.value),
+            },
         };
         var state: boolean | string = checkState(entry);
         if (typeof state == "string") {
             alert(state);
             return;
         }
-        process(entry);
-        window.close();
+        if (process(entry)) {
+            window.close();
+        }
     };
     // ボタン：キャンセル
     const cancelC: Button = window.add("button", createPositionBounds(150, 390, 250, 420), "キャンセル");
@@ -189,8 +190,9 @@ function getLayerNames(): string[] {
 /**
  * 分離の処理を実行します。
  * @param entry フォームデータ
+ * @returns スクリプトを終了する場合はtrue，それ以外でfalse
  */
-function process(entry: UIEntry): void {
+function process(entry: UIEntry): boolean {
     // @ts-ignore
     const location = ElementPlacement.PLACEATEND;
     const layers: Layers = app.activeDocument.layers;
@@ -210,39 +212,30 @@ function process(entry: UIEntry): void {
     while (pathIndex < srcLayer.pathItems.length) {
         var currentPath: PathItem = srcLayer.pathItems[pathIndex];
 
-        // 色の条件・
+        // 色の条件
         var color: Color = entry.searchType == 0 ? currentPath.fillColor : currentPath.strokeColor;
         var willMove: boolean;
         if (entry.searchType == 0) {
             entry.pathType = 0;
         }
-        if (color instanceof NoColor) {
-            pathIndex++;
-            continue;
-        }
-        if (color instanceof RGBColor) {
-            switch (entry.pathType) {
-                // 全てのパスオブジェクト
-                case 0:
-                    willMove = color.red == entry.colorR && color.green == entry.colorG && color.blue == color.blue;
-                    break;
-                // 縦棒のみ
-                case 1:
-                    willMove = isVerticalLine(currentPath) && color.red == entry.colorR && color.green == entry.colorG && color.blue == color.blue;
-                    break;
-                // 横棒のみ
-                case 2:
-                    willMove = isHorizontalLine(currentPath) && color.red == entry.colorR && color.green == entry.colorG && color.blue == color.blue;
-                    break;
-                // 無効な値
-                default:
-                    alert("選択した処理対象が無効です");
-                    return;
-            }
-        }
-        else {
-            // TODO: 他のカラーへの対応
-            willMove = false;
+        switch (entry.pathType) {
+            // 全てのパスオブジェクト
+            case 0:
+                willMove = isSameColor(entry.color, color);
+                break;
+            // 縦棒のみ
+            case 1:
+                willMove = isVerticalLine(currentPath) && isSameColor(entry.color, color);
+                break;
+            // 横棒のみ
+            case 2:
+                willMove = isHorizontalLine(currentPath) && isSameColor(entry.color, color);
+                break;
+            // 無効な値
+            default:
+                alert("選択した処理対象が無効です");
+                destLayer.remove();
+                return false;
         }
 
         // 色や処理対象の条件に適合するものを対象レイヤーへ移動
@@ -256,7 +249,10 @@ function process(entry: UIEntry): void {
     }
     if (movedCount == 0) {
         alert("対象オブジェクトがありません");
+        destLayer.remove();
+        return false;
     }
+    return true;
 }
 
 /**
@@ -324,6 +320,25 @@ function isHorizontalLine(item: PathItem): boolean {
     const points: PathPoints = item.pathPoints;
     // アンカー数が2且つ両Y座標が同じ
     return points.length == 2 && points[0].anchor[1] == points[1].anchor[1];
+}
+
+/**
+ * 色の比較を行います。
+ * @param rgb 元となるRGBカラー
+ * @param comparison 比較対象のカラー
+ * @returns rgbとcomparisonが同色を表す場合はtrue，それ以外でfalse
+ */
+function isSameColor(rgb: RGBColor, comparison: Color) {
+    if (comparison instanceof NoColor) {
+        return false;
+    }
+    if (comparison instanceof RGBColor) {
+        return rgb.red == comparison.red
+            && rgb.green == comparison.green
+            && rgb.blue == comparison.blue;
+    }
+    // TODO: 他のカラーへの対応
+    return false;
 }
 
 migrate_color();
