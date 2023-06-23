@@ -431,6 +431,17 @@ function isSameColor(rgb: RGBColor, comparison: Color) {
             && rgb.green == comparison.green
             && rgb.blue == comparison.blue;
     }
+    if (comparison instanceof CMYKColor) {
+        return rgb.red == 255 * (1 - comparison.cyan) * (1 - comparison.black)
+            && rgb.green == 255 * (1 - comparison.magenta) * (1 - comparison.black)
+            && rgb.blue == 255 * (1 - comparison.yellow) * (1 - comparison.black);
+    }
+    if (comparison instanceof GrayColor) {
+        const gray = Math.floor(comparison.gray * 255 / 100);
+        return rgb.red == gray
+            && rgb.green == gray
+            && rgb.blue == gray;
+    }
     // TODO: 他のカラーへの対応
     return false;
 }
