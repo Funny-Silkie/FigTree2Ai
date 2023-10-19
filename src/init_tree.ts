@@ -18,8 +18,8 @@ function init_tree(): void {
         const group: GroupItem = scaleBarLayer.groupItems.add();
         const text: TextFrame = firstLayer.textFrames[0];
         const bar: PathItem = firstLayer.pathItems[firstLayer.pathItems.length - 1];
-        register(text, group);
-        register(bar, group);
+        moveLayerOrGroup(text, group);
+        moveLayerOrGroup(bar, group);
     }
     // 全ての枝をカットして縦棒と横棒にする
     {
@@ -32,7 +32,6 @@ function init_tree(): void {
                 pathIndex++;
                 continue;
             }
-            register(currentPath, nodeLayer);
             // [0]: 右側の点
             // [1]: 左下の点
             // [2]: 左上の点
@@ -49,10 +48,26 @@ function init_tree(): void {
                     break;
                 }
             }
-            // 右側の点を削除
-            currentPath.pathPoints[indexOf(currentPath.pathPoints, pointList[0])].remove();
-            // 左側の点を削除
-            newPath.pathPoints[deletedIndex].remove();
+
+            // deletedIndexが0→枝長が0
+            if (deletedIndex < 0) {
+                for (var pointIndex = 0; pointIndex < currentPath.pathPoints.length; pointIndex++) {
+                    var currentPoint: Point | [number, number] = currentPath.pathPoints[pointIndex].anchor;
+                    for (var targetIndex = pointIndex + 1; targetIndex < currentPath.pathPoints.length; targetIndex++) {
+                        var targetPoint: Point | [number, number] = currentPath.pathPoints[targetIndex].anchor;
+                        if (currentPoint == targetPoint) {
+                            currentPath.pathPoints[targetIndex].remove();
+                        }
+                    }
+                }
+            } else {
+                // 右側の点を削除
+                currentPath.pathPoints[indexOf(currentPath.pathPoints, pointList[0])].remove();
+                // 左側の点を削除
+                newPath.pathPoints[deletedIndex].remove();
+            }
+
+            moveLayerOrGroup(currentPath, nodeLayer);
         }
     }
     // 根の枝の削除
@@ -94,7 +109,7 @@ function indexOf(list: PathPoints, value: PathPoint): number {
  * @param obj 所属を変更するオブジェクト
  * @param dest 追加先所属
  */
-function register(obj: PageItem, dest: Layer | GroupItem): void {
+function moveLayerOrGroup(obj: PageItem, dest: Layer | GroupItem): void {
     // @ts-ignore
     const location = ElementPlacement.PLACEATEND;
     obj.move(dest, location);
