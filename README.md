@@ -11,7 +11,8 @@
 1. FigTreeのエクスポート機能でPDFを出力
 1. イラレで当該PDFファイルを開く
 1. クリッピングマスクの解除を2回行う
-1. イラレの「ファイル>スクリプト>その他のスクリプト」でファイル選択画面に遷移，実行したいスクリプトを実行
+1. イラレの「ファイル>スクリプト>その他のスクリプト」でファイル選択画面に遷移，実行したいスクリプトを実行  
+※Windowsの場合は `C:\Program Files\Adobe\Adobe Illustrator XXXX\Presets\ja_JP\スクリプト\` に配置すると一々参照せずに済みます
 
 ※スクリプト（JSファイル）のダウンロードは[Release欄](https://github.com/Funny-Silkie/FigTree2Ai/releases)から
 

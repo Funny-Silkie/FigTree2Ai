@@ -1,5 +1,6 @@
 #!/bin/bash
 
+readonly VERSION="1.1.1"
 readonly BUILD_DIR="build"
 readonly TMP_PATH="tmp"
 
@@ -19,7 +20,7 @@ for FILE in $(ls *.js); do
     sed -e "s/@ts-ignore//g" $FILE > $TMP_PATH
     # print script info
     echo "// ${FILE} in FigTree2Ai" > $FILE
-    echo "// Version: 1.1.0" >> $FILE
+    echo "// Version: ${VERSION}" >> $FILE
     # print license
     while read LINE; do
         echo "// ${LINE}" >> $FILE
