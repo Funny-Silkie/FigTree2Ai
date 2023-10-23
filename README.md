@@ -36,6 +36,6 @@
 
 ### 使い方
 
-1. 実行すると以下のウィンドウが表示されるので，処理の設定を行う
-![img](./docs/images/migrate_color_window.png)
+1. 実行すると以下のウィンドウが表示されるので，処理の設定を行う  
+   ![img](./docs/images/migrate_color_window.png)
 1. 「OK」ボタンを押下
