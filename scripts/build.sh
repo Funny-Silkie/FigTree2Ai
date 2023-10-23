@@ -1,6 +1,6 @@
 #!/bin/bash
 
-readonly VERSION="1.1.1"
+readonly VERSION="1.2.0"
 readonly BUILD_DIR="build"
 readonly TMP_PATH="tmp"
 
