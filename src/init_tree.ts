@@ -16,7 +16,7 @@ function init_tree(): void {
         const scaleBarLayer: Layer = layers.add();
         scaleBarLayer.name = "Scale Bar";
         const group: GroupItem = scaleBarLayer.groupItems.add();
-        const text: TextFrame = firstLayer.textFrames[0];
+        const text: TextFrame = firstLayer.textFrames[firstLayer.textFrames.length - 1];
         const bar: PathItem = firstLayer.pathItems[firstLayer.pathItems.length - 1];
         moveLayerOrGroup(text, group);
         moveLayerOrGroup(bar, group);
@@ -32,11 +32,13 @@ function init_tree(): void {
                 pathIndex++;
                 continue;
             }
+
             // [0]: 右側の点
             // [1]: 左下の点
             // [2]: 左上の点
             var pointList: PathPoint[] = [currentPath.pathPoints[0], currentPath.pathPoints[1], currentPath.pathPoints[2]];
             pointList.sort(sorter);
+
             var newPath: PathItem = clone(currentPath, nodeLayer);
             // 左下の点を削除
             var deletedIndex: number = -1;
@@ -49,7 +51,7 @@ function init_tree(): void {
                 }
             }
 
-            // deletedIndexが0→枝長が0
+            // deletedIndexが-1→枝長が0
             if (deletedIndex < 0) {
                 for (var pointIndex = 0; pointIndex < currentPath.pathPoints.length; pointIndex++) {
                     var currentPoint: Point | [number, number] = currentPath.pathPoints[pointIndex].anchor;
@@ -61,6 +63,13 @@ function init_tree(): void {
                     }
                 }
             } else {
+                // クレードを束ねる三角は無視
+                if (currentPath.pathPoints[0].anchor[1] != currentPath.pathPoints[1].anchor[1] &&
+                    currentPath.pathPoints[1].anchor[1] != currentPath.pathPoints[2].anchor[1] &&
+                    currentPath.pathPoints[2].anchor[1] != currentPath.pathPoints[0].anchor[1]) {
+                    break;
+                }
+
                 // 右側の点を削除
                 currentPath.pathPoints[indexOf(currentPath.pathPoints, pointList[0])].remove();
                 // 左側の点を削除
@@ -73,6 +82,14 @@ function init_tree(): void {
     // 根の枝の削除
     {
         firstLayer.pathItems[0].remove();
+    }
+    // サポート値を移動
+    if (firstLayer.textFrames.length > 0) {
+        const supportValuesLayer: Layer = layers.add();
+        supportValuesLayer.name = "Support Values";
+        while (firstLayer.textFrames.length > 0) {
+            moveLayerOrGroup(firstLayer.textFrames[0], supportValuesLayer);
+        }
     }
 }
 
